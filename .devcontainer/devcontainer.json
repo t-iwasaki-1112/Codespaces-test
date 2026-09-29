@@ -1,0 +1,16 @@
+{
+  "name": "CRUD Demo Environment",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "postCreateCommand": "npm install",
+  "postStartCommand": "docker start postgres_db || docker run -d --name postgres_db -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=mydb -p 5432:5432 postgres:15-alpine && sleep 3 && npm start",
+  "forwardPorts": [3000, 5432],
+  "portsAttributes": {
+    "3000": {
+      "label": "Web Application",
+      "onAutoForward": "openBrowser"
+    }
+  }
+}
