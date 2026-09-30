@@ -2,7 +2,6 @@ const express = require('express');
 const { Client } = require('pg');
 const app = express();
 
-// データの受け取り設定
 app.use(express.json());
 
 const dbConfig = {
@@ -13,36 +12,9 @@ const dbConfig = {
   port: 5432,
 };
 
-// 【初期化】DBテーブル作成と初期データ
-async function setupDB() {
-  const client = new Client(dbConfig);
-  try {
-    await client.connect();
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS tasks (
-        id SERIAL PRIMARY KEY,
-        title TEXT NOT NULL
-      )
-    `);
-    // データが空なら初期データを投入
-    const res = await client.query("SELECT count(*) FROM tasks");
-    if (parseInt(res.rows[0].count) === 0) {
-      await client.query("INSERT INTO tasks (title) VALUES ('Gitpodの環境構築'), ('CRUDデモの実行')");
-    }
-    console.log("DBのセットアップが完了しました。");
-  } catch (err) {
-    console.error("DBエラー:", err);
-  } finally {
-    await client.end();
-  }
-}
-setupDB();
-
 // ==========================================
 // APIエンドポイント (CRUDの処理)
 // ==========================================
-
-// 【R】Read: 一覧取得
 app.get('/api/tasks', async (req, res) => {
   const client = new Client(dbConfig);
   await client.connect();
@@ -51,7 +23,6 @@ app.get('/api/tasks', async (req, res) => {
   res.json(result.rows);
 });
 
-// 【C】Create: 新規作成
 app.post('/api/tasks', async (req, res) => {
   const client = new Client(dbConfig);
   await client.connect();
@@ -60,7 +31,6 @@ app.post('/api/tasks', async (req, res) => {
   res.json(result.rows[0]);
 });
 
-// 【U】Update: 更新
 app.put('/api/tasks/:id', async (req, res) => {
   const client = new Client(dbConfig);
   await client.connect();
@@ -69,7 +39,6 @@ app.put('/api/tasks/:id', async (req, res) => {
   res.json(result.rows[0]);
 });
 
-// 【D】Delete: 削除
 app.delete('/api/tasks/:id', async (req, res) => {
   const client = new Client(dbConfig);
   await client.connect();
@@ -109,9 +78,9 @@ app.get('/', (req, res) => {
     </head>
     <body>
       <div class="container">
-        <h1>✅ タスク管理 (PostgreSQL連携デモ)</h1>
+        <h1>✅ タスク管理 (本番DB再現環境)</h1>
         <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
-          画面の操作はすべて裏側のPostgreSQL（API）にリアルタイムで反映されます。
+          画面の操作は独立したPostgreSQLに反映されます。
         </p>
         
         <div class="flex">
@@ -123,7 +92,6 @@ app.get('/', (req, res) => {
       </div>
 
       <script>
-        // 一覧を表示する (Read)
         async function fetchTasks() {
           const res = await fetch('/api/tasks');
           const tasks = await res.json();
@@ -143,45 +111,30 @@ app.get('/', (req, res) => {
           });
         }
 
-        // タスクを追加する (Create)
         async function addTask() {
           const input = document.getElementById('taskTitle');
           if (!input.value) return;
-          
-          await fetch('/api/tasks', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title: input.value })
-          });
-          
+          await fetch('/api/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: input.value }) });
           input.value = '';
-          fetchTasks(); // 画面を更新
+          fetchTasks();
         }
 
-        // タスクを編集する (Update)
         async function editTask(id) {
           const span = document.getElementById(\`title-\${id}\`);
           const newTitle = prompt('タスク名を編集:', span.innerText);
-          
           if (newTitle && newTitle !== span.innerText) {
-            await fetch(\`/api/tasks/\${id}\`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ title: newTitle })
-            });
-            fetchTasks(); // 画面を更新
+            await fetch(\`/api/tasks/\${id}\`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newTitle }) });
+            fetchTasks();
           }
         }
 
-        // タスクを削除する (Delete)
         async function deleteTask(id) {
           if (confirm('本当に削除してよろしいですか？')) {
             await fetch(\`/api/tasks/\${id}\`, { method: 'DELETE' });
-            fetchTasks(); // 画面を更新
+            fetchTasks();
           }
         }
 
-        // 画面読み込み時に一覧を取得
         fetchTasks();
       </script>
     </body>
