@@ -1,6 +1,6 @@
 {
-  "postStartCommand": "npm install && docker start postgres_db || docker run -d --name postgres_db -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=mydb -p 5432:5432 -v pgdata:/var/lib/postgresql/data -v $(pwd)/.devcontainer/init.sql:/docker-entrypoint-initdb.d/init.sql postgres",
-  "forwardPorts": [3000],
+  "postStartCommand": "npm install && docker start postgres_db || docker run -d --name postgres_db -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=mydb -p 5432:5432 -v pgdata:/var/lib/postgresql/data postgres",
+  "forwardPorts": [3000, 5432],
   "portsAttributes": {
     "3000": {
       "onAutoForward": "openBrowser"
